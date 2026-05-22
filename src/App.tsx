@@ -13,7 +13,7 @@ const queryClient = new QueryClient()
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename="/Ledger-platform">
         <Routes>
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Navigate to="/ledgers" replace />} />
