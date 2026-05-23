@@ -10,6 +10,22 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.0.0/) y el v
 
 ---
 
+## [1.2.0] — 2026-05-23
+
+### Añadido
+- **Layer — Crear**: campos obligatorios Compañía (CF / SAS / Capital / Perú) y Moneda (COP / USD / PEN), independientes entre sí. La moneda no se deriva del país.
+- **Layer — ID Interno**: cada ledger recibe un identificador alfanumérico consecutivo (`LDG-001`, `LDG-002`…) generado automáticamente al crearlo, visible en lista y detalle.
+- **Configuración Contable**: campo opcional "Nota Contable" (texto libre) en cada Transaction Type.
+- **Plan de Cuentas — Jerarquía**: 40 cuentas reales del plan Bold CF SAS con niveles `grupo / cuenta / auxiliar`. Selector en cascada (3 dropdowns encadenados) en la configuración de field mappings.
+- **Módulo Integraciones**: renombrado desde "Exportación ERP" en Sidebar, header y navegación de detalle.
+
+### Modificado
+- **Transición de estado**: borrador → activo es la única dirección permitida. Los ledgers inactivos no pueden regresar a borrador ni activarse (guard en store + eliminación del botón "Reactivar").
+- **Mock data ledgers**: los 5 ledgers precargados incluyen `company`, `currency` e `internalId`.
+- **Plan de Cuentas — Crear cuenta**: formulario incluye campo de nivel jerárquico.
+
+---
+
 ## [1.1.0] — 2026-05-22
 
 ### Añadido
