@@ -131,7 +131,7 @@ Reads: `praxis/{change_name}/proposal`
 - NEVER write actual code. That is `praxis-build`. Interfaces and contracts in design are typed sketches, not implementations.
 - NEVER design without reading the affected source files.
 - NEVER omit Alternatives or Rationale on a decision row.
-- NEVER use any `mem_*` identifier. Only the six Anamnesis verbs from `.claude/_shared/mcp-contract.md`.
+- NEVER use any `mem_*` identifier. Only the nine Anamnesis verbs from `.claude/_shared/mcp-contract.md`.
 - NEVER skip `unfold` after `summon`.
 - NEVER duplicate or redefine the severity enum locally — reference `.claude/_shared/severity.md` (the canonical source).
 - NEVER exceed 800 words.

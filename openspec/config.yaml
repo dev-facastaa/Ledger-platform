@@ -29,8 +29,9 @@ rules:
     - Keep tasks completable in one session
     - UI tasks MUST name the component file and the Tailwind change
   apply:
-    - Follow existing code patterns (TypeScript, named exports, functional components, hooks)
-    - Match existing Tailwind class ordering convention
+    conventions:
+      - Follow existing code patterns (TypeScript, named exports, functional components, hooks)
+      - Match existing Tailwind class ordering convention
     tdd: false
     test_command: ""
   verify:

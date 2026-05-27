@@ -125,7 +125,7 @@ Reads: `praxis/{change_name}/explore`, optional `praxis/{change_name}/model-crit
 - NEVER drift into design or implementation details — that is `praxis-design`'s job. If you find yourself naming files, schemas, or implementation strategies, stop and trim.
 - NEVER write code, schemas, or test plans. That is `praxis-design` and `praxis-build`.
 - NEVER omit the rollback plan or success criteria — both are mandatory.
-- NEVER use any `mem_*` identifier. Only the six Anamnesis verbs from `.claude/_shared/mcp-contract.md`.
+- NEVER use any `mem_*` identifier. Only the nine Anamnesis verbs from `.claude/_shared/mcp-contract.md`.
 - NEVER skip `unfold` after `summon`.
 - NEVER exceed the 400-word budget for the artifact body.
 - NEVER invent a severity value outside `.claude/_shared/severity.md`.

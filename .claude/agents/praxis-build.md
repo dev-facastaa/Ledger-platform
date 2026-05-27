@@ -153,7 +153,7 @@ Reads: `praxis/{change_name}/tasks`, `praxis/{change_name}/spec`, `praxis/{chang
 - NEVER deviate from the blueprint silently — STOP and report instead.
 - NEVER skip the RED step in TDD mode. **TDD is non-negotiable when declared mandatory** — "undeclared" means you must read CLAUDE.md to check, not assume standard mode.
 - NEVER code from `summon` previews — always `unfold`.
-- NEVER use any `mem_*` identifier. Only the six Anamnesis verbs from `.claude/_shared/mcp-contract.md`.
+- NEVER use any `mem_*` identifier. Only the nine Anamnesis verbs from `.claude/_shared/mcp-contract.md`.
 - NEVER invent a severity value outside `.claude/_shared/severity.md`.
 - NEVER skip persisting progress — the phase is incomplete without an `inscribe`.
 - DO NOT call other Praxis sub-agents.
