@@ -1,0 +1,43 @@
+schema: spec-driven
+
+context: |
+  Tech stack: React 19 + TypeScript + Vite + Tailwind CSS v4
+  Architecture: SPA (Single Page Application), component-based
+  State management: Zustand (client) + TanStack React Query (server)
+  Routing: React Router v7
+  Charts: Recharts
+  Package manager: npm
+  Deployment: GitHub Pages via GitHub Actions
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Flag any change that requires migration of Zustand store shape
+    - Flag any change that modifies the React Router route tree
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Reference component names using PascalCase
+    - Reference Zustand store slices by their hook name (e.g., useLedgerStore)
+  design:
+    - Include sequence diagrams for complex async flows
+    - Document architecture decisions with rationale
+    - Identify Zustand slice or React Query key affected by each decision
+    - Name the Tailwind classes or design tokens affected when touching UI
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+    - UI tasks MUST name the component file and the Tailwind change
+  apply:
+    conventions:
+      - Follow existing code patterns (TypeScript, named exports, functional components, hooks)
+      - Match existing Tailwind class ordering convention
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: ""
+    build_command: "npm run build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas to Zustand store shape
+    - Warn before changes to the GitHub Actions deploy workflow

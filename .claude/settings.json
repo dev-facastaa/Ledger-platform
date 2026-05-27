@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "anamnesis": {
+      "type": "http",
+      "url": "https://anamnesis.armandozaratem.com/mcp"
+    }
+  }
+}
