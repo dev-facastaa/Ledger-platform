@@ -4,8 +4,8 @@ import { Button } from '../../components/ui/Button'
 import { Input, Select, Textarea } from '../../components/ui/Input'
 import { useAppStore } from '../../store'
 import { useNavigate } from 'react-router-dom'
-import type { Ledger, LedgerCountry, LedgerFrequency, LedgerCompany, LedgerCurrency } from '../../types'
-import { PRODUCTS, COUNTRIES, FREQUENCIES, COMPANIES, CURRENCIES } from '../../services/mock/ledgers'
+import type { Ledger, LedgerFrequency, LedgerCurrency, LedgerCompany } from '../../types'
+import { FREQUENCIES, CURRENCIES, COMPANIES_BY_COUNTRY } from '../../services/mock/ledgers'
 
 interface Props {
   open: boolean
@@ -15,17 +15,18 @@ interface Props {
 const NAME_REGEX = /^[a-zA-Z0-9_-]+$/
 
 export function CreateLedgerModal({ open, onClose }: Props) {
-  const { ledgers, addLedger, addToast, currentUser } = useAppStore()
+  const { ledgers, addLedger, addToast, currentUser, selectedCountry } = useAppStore()
   const navigate = useNavigate()
   const [name, setName] = useState('')
-  const [product, setProduct] = useState('')
-  const [country, setCountry] = useState<LedgerCountry | ''>('')
-  const [frequency, setFrequency] = useState<LedgerFrequency | ''>('')
   const [company, setCompany] = useState<LedgerCompany | ''>('')
+  const [frequency, setFrequency] = useState<LedgerFrequency | ''>('')
   const [currency, setCurrency] = useState<LedgerCurrency | ''>('')
   const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+
+  // Opciones de compañía filtradas según el país activo del header
+  const companyOptions = COMPANIES_BY_COUNTRY[selectedCountry] ?? []
 
   const validate = () => {
     const e: Record<string, string> = {}
@@ -33,10 +34,8 @@ export function CreateLedgerModal({ open, onClose }: Props) {
     else if (name.length > 100) e.name = 'Máximo 100 caracteres'
     else if (!NAME_REGEX.test(name)) e.name = 'Solo letras, números, guiones y underscores'
     else if (ledgers.some(l => l.name === name)) e.name = 'Ya existe un ledger con este nombre'
-    if (!product) e.product = 'Selecciona un producto'
     if (!company) e.company = 'Selecciona una compañía'
     if (!currency) e.currency = 'Selecciona una moneda'
-    if (!country) e.country = 'Selecciona un país'
     if (!frequency) e.frequency = 'Selecciona una frecuencia'
     if (description.length > 500) e.description = 'Máximo 500 caracteres'
     return e
@@ -50,12 +49,12 @@ export function CreateLedgerModal({ open, onClose }: Props) {
     const newLedger: Omit<Ledger, 'internalId'> = {
       id: `ldg-${crypto.randomUUID().slice(0, 8)}`,
       name: name.trim(),
-      product,
+      product: '',                         // no requerido en creación
       description: description.trim() || undefined,
       status: 'borrador',
-      country: country as LedgerCountry,
-      frequency: frequency as LedgerFrequency,
+      country: selectedCountry,            // ← desde el selector global del header
       company: company as LedgerCompany,
+      frequency: frequency as LedgerFrequency,
       currency: currency as LedgerCurrency,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -71,7 +70,7 @@ export function CreateLedgerModal({ open, onClose }: Props) {
   }
 
   const handleClose = () => {
-    setName(''); setProduct(''); setCountry(''); setFrequency(''); setCompany(''); setCurrency(''); setDescription(''); setErrors({})
+    setName(''); setCompany(''); setFrequency(''); setCurrency(''); setDescription(''); setErrors({})
     onClose()
   }
 
@@ -97,23 +96,18 @@ export function CreateLedgerModal({ open, onClose }: Props) {
           helper="Solo letras, números, guiones (-) y underscores (_)"
           maxLength={100}
         />
+
+        {/* Compañía — reemplaza Producto Asociado; opciones filtradas por país activo */}
         <Select
-          label="Producto Asociado *"
-          value={product}
-          onChange={e => { setProduct(e.target.value); setErrors(p => ({ ...p, product: '' })) }}
-          options={PRODUCTS.map(p => ({ value: p, label: p }))}
-          placeholder="Selecciona un producto..."
-          error={errors.product}
+          label="Compañía *"
+          value={company}
+          onChange={e => { setCompany(e.target.value as LedgerCompany | ''); setErrors(p => ({ ...p, company: '' })) }}
+          options={companyOptions}
+          placeholder="Selecciona una compañía..."
+          error={errors.company}
         />
+
         <div className="grid grid-cols-2 gap-4">
-          <Select
-            label="Compañía *"
-            value={company}
-            onChange={e => { setCompany(e.target.value as LedgerCompany | ''); setErrors(p => ({ ...p, company: '' })) }}
-            options={COMPANIES}
-            placeholder="Selecciona una compañía..."
-            error={errors.company}
-          />
           <Select
             label="Moneda *"
             value={currency}
@@ -121,16 +115,6 @@ export function CreateLedgerModal({ open, onClose }: Props) {
             options={CURRENCIES}
             placeholder="Selecciona una moneda..."
             error={errors.currency}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Select
-            label="País *"
-            value={country}
-            onChange={e => { setCountry(e.target.value as LedgerCountry | ''); setErrors(p => ({ ...p, country: '' })) }}
-            options={COUNTRIES}
-            placeholder="Selecciona un país..."
-            error={errors.country}
           />
           <Select
             label="Frecuencia *"
@@ -141,6 +125,7 @@ export function CreateLedgerModal({ open, onClose }: Props) {
             error={errors.frequency}
           />
         </div>
+
         <Textarea
           label="Descripción"
           value={description}
@@ -150,9 +135,12 @@ export function CreateLedgerModal({ open, onClose }: Props) {
           error={errors.description}
           helper={`${description.length}/500 caracteres`}
         />
-        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-[#f1f2f6]">
-          <span className="w-2 h-2 rounded-full bg-[#ff9800]" />
-          <p className="text-sm text-[#6c759f]">Estado inicial: <span className="font-semibold text-[#121e6c]">Borrador</span></p>
+
+        <div className="flex items-center gap-2 px-4 py-3 rounded-lg" style={{ background: '#F3F3F3' }}>
+          <span className="w-2 h-2 rounded-full" style={{ background: '#FFC217' }} />
+          <p className="text-sm" style={{ color: '#606060' }}>
+            Estado inicial: <span className="font-semibold" style={{ color: '#121E6C' }}>Borrador</span>
+          </p>
         </div>
       </div>
     </Modal>

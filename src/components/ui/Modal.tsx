@@ -22,20 +22,30 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-xl', f
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Overlay — rgba(0,0,0,0.5) según Merlin */}
       <div
         className="absolute inset-0"
-        style={{ background: 'rgba(18, 30, 108, 0.6)' }}
+        style={{ background: 'rgba(0,0,0,0.5)' }}
         onClick={onClose}
       />
       <div
-        className={`relative bg-white rounded-2xl p-8 w-full ${maxWidth} slide-in`}
-        style={{ boxShadow: '0 8px 32px rgba(18, 30, 108, 0.16)', maxHeight: '90vh', overflowY: 'auto' }}
+        className={`relative bg-white w-full ${maxWidth} slide-in`}
+        style={{
+          borderRadius: '18px',
+          padding: '32px',
+          boxShadow: '0px 12px 28px 0px rgba(18,30,108,0.08)',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+        }}
       >
         <div className="flex items-start justify-between mb-6">
-          <h3 className="text-2xl font-bold text-[#121e6c]">{title}</h3>
+          {/* Title/Large — 28px/400 Merlin */}
+          <h3 style={{ fontSize: '28px', lineHeight: '32px', fontWeight: 400, color: '#121E6C' }}>
+            {title}
+          </h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-[#f1f2f6] transition-colors text-[#6c759f] hover:text-[#121e6c]"
+            className="p-1 rounded-lg hover:bg-[#F1F2F6] transition-colors text-[#606060] hover:text-[#121E6C]"
           >
             <X size={20} />
           </button>
@@ -72,7 +82,7 @@ export function ConfirmModal({ open, onClose, onConfirm, title, message, confirm
         </>
       }
     >
-      <p className="text-base text-[#6c759f]">{message}</p>
+      <p className="text-base text-[#606060]">{message}</p>
     </Modal>
   )
 }

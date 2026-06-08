@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Ledger, Account } from '../types'
+import type { Ledger, Account, LedgerCountry } from '../types'
 import { mockLedgers } from '../services/mock/ledgers'
 import { mockAccounts } from '../services/mock/accounts'
 
@@ -14,6 +14,8 @@ interface AppStore {
   accounts: Account[]
   toasts: Toast[]
   currentUser: string
+  selectedCountry: LedgerCountry
+  setCountry: (country: LedgerCountry) => void
   addLedger: (ledger: Omit<Ledger, 'internalId'>) => void
   updateLedger: (id: string, updates: Partial<Ledger>) => void
   addToast: (type: Toast['type'], message: string) => void
@@ -26,6 +28,8 @@ export const useAppStore = create<AppStore>((set) => ({
   accounts: mockAccounts,
   toasts: [],
   currentUser: 'maria.lopez@bold.co',
+  selectedCountry: 'colombia',
+  setCountry: (country) => set({ selectedCountry: country }),
 
   addLedger: (ledger) =>
     set((s) => {

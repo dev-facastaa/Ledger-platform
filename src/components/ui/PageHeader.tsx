@@ -22,18 +22,26 @@ export function PageHeader({ title, breadcrumbs, actions }: PageHeaderProps) {
             {breadcrumbs.map((b, i) => (
               <span key={i} className="flex items-center gap-1.5">
                 {b.to ? (
-                  <Link to={b.to} className="text-sm text-[#6c759f] hover:text-[#121e6c] transition-colors">
+                  <Link to={b.to} className="text-sm transition-colors" style={{ color: '#606060' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#121E6C')}
+                    onMouseLeave={e => (e.currentTarget.style.color = '#606060')}
+                  >
                     {b.label}
                   </Link>
                 ) : (
-                  <span className="text-sm font-semibold text-[#121e6c]">{b.label}</span>
+                  <span className="text-sm font-semibold" style={{ color: '#121E6C' }}>{b.label}</span>
                 )}
-                {i < breadcrumbs.length - 1 && <ChevronRight size={14} className="text-[#d2d4e1]" />}
+                {i < breadcrumbs.length - 1 && (
+                  <ChevronRight size={14} style={{ color: '#969696' }} />
+                )}
               </span>
             ))}
           </div>
         )}
-        <h1 className="text-2xl font-black text-[#121e6c]">{title}</h1>
+        {/* Title/Large Merlin: 28px / 400 */}
+        <h1 style={{ fontSize: '28px', lineHeight: '32px', fontWeight: 400, color: '#121E6C', margin: 0 }}>
+          {title}
+        </h1>
       </div>
       {actions && <div className="flex items-center gap-3">{actions}</div>}
     </div>

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Plus, Edit2, Trash2, CheckCircle, AlertTriangle } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Plus, Edit2, Trash2, CheckCircle, AlertTriangle, Search } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -10,19 +10,110 @@ import type { Ledger, AccountingEntryConfig, FieldMapping, AccountNature } from 
 
 interface Props { ledger: Ledger }
 
+// ─── Autocompletado de cuenta auxiliar ───────────────────────────────────────
+interface AccountAutocompleteProps {
+  value: string        // accountCode seleccionado
+  label: string        // accountName seleccionado
+  onSelect: (code: string, name: string) => void
+  placeholder?: string
+}
+
+function AccountAutocomplete({ value, label, onSelect, placeholder = 'Buscar cuenta auxiliar...' }: AccountAutocompleteProps) {
+  const { accounts } = useAppStore()
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const auxiliares = accounts.filter(a => a.level === 'auxiliar' && a.status === 'activa')
+
+  const results = query.trim().length > 0
+    ? auxiliares.filter(a =>
+        a.code.includes(query) ||
+        a.name.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 8)
+    : []
+
+  // Cerrar al hacer click fuera
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const displayValue = value ? `${value} – ${label}` : ''
+
+  return (
+    <div ref={ref} className="relative">
+      <div className="relative">
+        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#969696' }} />
+        <input
+          value={open ? query : displayValue}
+          onChange={e => { setQuery(e.target.value); setOpen(true) }}
+          onFocus={() => { setQuery(''); setOpen(true) }}
+          placeholder={placeholder}
+          className="h-10 pl-8 pr-3 w-full border border-[#969696] text-xs text-[#121E6C] bg-white focus:outline-none focus:border-2 focus:border-[#FF2947]"
+          style={{ borderRadius: '8px' }}
+        />
+      </div>
+
+      {open && results.length > 0 && (
+        <div
+          className="absolute left-0 right-0 top-full mt-1 py-1 z-50 fade-in"
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '12px',
+            boxShadow: '0px 4px 12px 0px rgba(18,30,108,0.10)',
+            maxHeight: '220px',
+            overflowY: 'auto',
+          }}
+        >
+          {results.map(a => (
+            <button
+              key={a.code}
+              type="button"
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => { onSelect(a.code, a.name); setQuery(''); setOpen(false) }}
+              className="flex items-baseline gap-2 w-full px-3 py-2 text-left transition-colors"
+              style={{ fontSize: '12px' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#F7F8FB')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <span className="font-mono font-semibold shrink-0" style={{ color: '#3E4983' }}>{a.code}</span>
+              <span style={{ color: '#121E6C' }}>{a.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {open && query.length > 0 && results.length === 0 && (
+        <div
+          className="absolute left-0 right-0 top-full mt-1 px-3 py-3 z-50"
+          style={{ background: '#FFFFFF', borderRadius: '12px', boxShadow: '0px 4px 12px 0px rgba(18,30,108,0.10)' }}
+        >
+          <p className="text-xs" style={{ color: '#969696' }}>Sin resultados para "{query}"</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Indicador de partida doble ───────────────────────────────────────────────
 function BalanceIndicator({ mappings }: { mappings: FieldMapping[] }) {
-  const debits = mappings.filter(m => m.nature === 'debito').length
+  const debits  = mappings.filter(m => m.nature === 'debito').length
   const credits = mappings.filter(m => m.nature === 'credito').length
   const balanced = debits > 0 && credits > 0 && debits === credits
-  const hasAny = mappings.length > 0
-
-  if (!hasAny) return null
+  if (mappings.length === 0) return null
   return (
-    <div className={`flex items-center gap-2 px-4 py-2.5 rounded-lg ${balanced ? 'bg-green-50' : 'bg-amber-50'}`}>
+    <div
+      className="flex items-center gap-2 px-4 py-2.5 rounded-lg"
+      style={{ background: balanced ? '#F4FDF9' : '#FFF3D1' }}
+    >
       {balanced
-        ? <CheckCircle size={16} color="#4caf50" />
-        : <AlertTriangle size={16} color="#ff9800" />}
-      <span className={`text-sm font-semibold ${balanced ? 'text-green-700' : 'text-amber-700'}`}>
+        ? <CheckCircle size={16} color="#1B8959" />
+        : <AlertTriangle size={16} color="#FFC217" />}
+      <span className="text-sm font-semibold" style={{ color: balanced ? '#1B8959' : '#5B3100' }}>
         {balanced
           ? 'Partida doble balanceada ✓'
           : `Desbalanceada: ${debits} débito(s) vs ${credits} crédito(s)`}
@@ -31,34 +122,41 @@ function BalanceIndicator({ mappings }: { mappings: FieldMapping[] }) {
   )
 }
 
+// ─── Preview de asiento ───────────────────────────────────────────────────────
 function AccountingPreview({ mappings }: { mappings: FieldMapping[] }) {
   if (mappings.length === 0) return null
   const EXAMPLE = 100000
   return (
-    <div className="border border-[#d2d4e1] rounded-lg overflow-hidden">
-      <p className="text-xs font-semibold text-[#6c759f] px-4 py-2 bg-[#f1f2f6]">Preview de asiento (ejemplo: $100.000)</p>
+    <div className="border border-[#F1F2F6] rounded-xl overflow-hidden">
+      <p className="text-xs font-semibold px-4 py-2" style={{ background: '#F1F2F6', color: '#606060' }}>
+        Preview de asiento (ejemplo: $100.000)
+      </p>
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-[#f1f2f6] border-b border-[#d2d4e1]">
-            <th className="text-left px-4 py-2 text-xs font-semibold text-[#121e6c]">Cuenta</th>
-            <th className="text-right px-4 py-2 text-xs font-semibold text-[#121e6c]">Débito</th>
-            <th className="text-right px-4 py-2 text-xs font-semibold text-[#121e6c]">Crédito</th>
+          <tr style={{ background: '#F1F2F6', borderBottom: '1px solid #F1F2F6' }}>
+            <th className="text-left px-4 py-2 text-xs font-semibold" style={{ color: '#121E6C' }}>Cuenta</th>
+            <th className="text-right px-4 py-2 text-xs font-semibold" style={{ color: '#121E6C' }}>Débito</th>
+            <th className="text-right px-4 py-2 text-xs font-semibold" style={{ color: '#121E6C' }}>Crédito</th>
           </tr>
         </thead>
         <tbody>
           {mappings.map(m => (
-            <tr key={m.id} className="border-b border-[#d2d4e1]">
-              <td className="px-4 py-2 text-[#121e6c]">{m.accountCode} {m.accountName}</td>
-              <td className="px-4 py-2 text-right text-[#121e6c]">{m.nature === 'debito' ? `$${EXAMPLE.toLocaleString('es-CO')}` : ''}</td>
-              <td className="px-4 py-2 text-right text-[#121e6c]">{m.nature === 'credito' ? `$${EXAMPLE.toLocaleString('es-CO')}` : ''}</td>
+            <tr key={m.id} style={{ borderBottom: '1px solid #F1F2F6' }}>
+              <td className="px-4 py-2" style={{ color: '#121E6C' }}>{m.accountCode} {m.accountName}</td>
+              <td className="px-4 py-2 text-right" style={{ color: '#121E6C' }}>
+                {m.nature === 'debito' ? `$${EXAMPLE.toLocaleString('es-CO')}` : ''}
+              </td>
+              <td className="px-4 py-2 text-right" style={{ color: '#121E6C' }}>
+                {m.nature === 'credito' ? `$${EXAMPLE.toLocaleString('es-CO')}` : ''}
+              </td>
             </tr>
           ))}
-          <tr className="bg-[#f1f2f6]">
-            <td className="px-4 py-2 text-xs font-bold text-[#121e6c]">Total</td>
-            <td className="px-4 py-2 text-right text-xs font-bold text-[#121e6c]">
+          <tr style={{ background: '#F1F2F6' }}>
+            <td className="px-4 py-2 text-xs font-bold" style={{ color: '#121E6C' }}>Total</td>
+            <td className="px-4 py-2 text-right text-xs font-bold" style={{ color: '#121E6C' }}>
               ${(mappings.filter(m => m.nature === 'debito').length * EXAMPLE).toLocaleString('es-CO')}
             </td>
-            <td className="px-4 py-2 text-right text-xs font-bold text-[#121e6c]">
+            <td className="px-4 py-2 text-right text-xs font-bold" style={{ color: '#121E6C' }}>
               ${(mappings.filter(m => m.nature === 'credito').length * EXAMPLE).toLocaleString('es-CO')}
             </td>
           </tr>
@@ -68,26 +166,27 @@ function AccountingPreview({ mappings }: { mappings: FieldMapping[] }) {
   )
 }
 
+// ─── Tab principal ────────────────────────────────────────────────────────────
 export function AccountingConfigTab({ ledger }: Props) {
-  const { updateLedger, accounts, addToast } = useAppStore()
-  const [showModal, setShowModal] = useState(false)
+  const { updateLedger, addToast } = useAppStore()
+  const [showModal, setShowModal]     = useState(false)
   const [editingConfig, setEditingConfig] = useState<AccountingEntryConfig | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
-  const [txType, setTxType] = useState('')
+  const [deleteTarget, setDeleteTarget]   = useState<string | null>(null)
+  const [txType, setTxType]           = useState('')
   const [description, setDescription] = useState('')
   const [accountingNote, setAccountingNote] = useState('')
-  const [mappings, setMappings] = useState<FieldMapping[]>([])
-  const [grupoSels, setGrupoSels] = useState<string[]>([])
-  const [cuentaSels, setCuentaSels] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [mappings, setMappings]       = useState<FieldMapping[]>([])
+  const [loading, setLoading]         = useState(false)
+  const [errors, setErrors]           = useState<Record<string, string>>({})
+
+  const blankMapping = (): FieldMapping => ({
+    id: crypto.randomUUID(), fieldName: '', accountCode: '', accountName: '', nature: 'debito',
+  })
 
   const openCreate = () => {
     setEditingConfig(null)
     setTxType(''); setDescription(''); setAccountingNote('')
-    setMappings([{ id: crypto.randomUUID(), fieldName: '', accountCode: '', accountName: '', nature: 'debito' }])
-    setGrupoSels([''])
-    setCuentaSels([''])
+    setMappings([blankMapping()])
     setErrors({})
     setShowModal(true)
   }
@@ -98,51 +197,18 @@ export function AccountingConfigTab({ ledger }: Props) {
     setDescription(cfg.description || '')
     setAccountingNote(cfg.accountingNote || '')
     setMappings(cfg.fieldMappings.map(m => ({ ...m })))
-    const derivedGrupos = cfg.fieldMappings.map(m => {
-      const aux = accounts.find(a => a.code === m.accountCode && a.level === 'auxiliar')
-      if (!aux) return ''
-      const cuenta = accounts.find(a => a.level === 'cuenta' && aux.code.startsWith(a.code.slice(0, 6)))
-      if (!cuenta) return ''
-      const grupo = accounts.find(a => a.level === 'grupo' && cuenta.code.startsWith(a.code.slice(0, 4)))
-      return grupo?.code || ''
-    })
-    const derivedCuentas = cfg.fieldMappings.map(m => {
-      const aux = accounts.find(a => a.code === m.accountCode && a.level === 'auxiliar')
-      if (!aux) return ''
-      const cuenta = accounts.find(a => a.level === 'cuenta' && aux.code.startsWith(a.code.slice(0, 6)))
-      return cuenta?.code || ''
-    })
-    setGrupoSels(derivedGrupos)
-    setCuentaSels(derivedCuentas)
     setErrors({})
     setShowModal(true)
   }
 
-  const addMapping = () => {
-    setMappings(p => [...p, { id: crypto.randomUUID(), fieldName: '', accountCode: '', accountName: '', nature: 'debito' }])
-    setGrupoSels(p => [...p, ''])
-    setCuentaSels(p => [...p, ''])
-  }
+  const addMapping    = () => setMappings(p => [...p, blankMapping()])
+  const removeMapping = (id: string) => setMappings(p => p.filter(m => m.id !== id))
 
-  const removeMapping = (id: string) => {
-    const idx = mappings.findIndex(m => m.id === id)
-    setMappings(p => p.filter(m => m.id !== id))
-    if (idx >= 0) {
-      setGrupoSels(p => p.filter((_, i) => i !== idx))
-      setCuentaSels(p => p.filter((_, i) => i !== idx))
-    }
-  }
+  const updateMapping = (id: string, key: keyof FieldMapping, value: string) =>
+    setMappings(p => p.map(m => m.id !== id ? m : { ...m, [key]: value }))
 
-  const updateMapping = (id: string, key: keyof FieldMapping, value: string) => {
-    setMappings(p => p.map(m => {
-      if (m.id !== id) return m
-      if (key === 'accountCode') {
-        const acc = accounts.find(a => a.code === value)
-        return { ...m, accountCode: value, accountName: acc?.name || '' }
-      }
-      return { ...m, [key]: value }
-    }))
-  }
+  const selectAccount = (id: string, code: string, name: string) =>
+    setMappings(p => p.map(m => m.id !== id ? m : { ...m, accountCode: code, accountName: name }))
 
   const validate = () => {
     const e: Record<string, string> = {}
@@ -159,7 +225,6 @@ export function AccountingConfigTab({ ledger }: Props) {
     if (Object.keys(e).length) { setErrors(e); return }
     setLoading(true)
     await new Promise(r => setTimeout(r, 600))
-
     const newConfig: AccountingEntryConfig = {
       id: editingConfig?.id || crypto.randomUUID(),
       ledgerId: ledger.id,
@@ -168,13 +233,11 @@ export function AccountingConfigTab({ ledger }: Props) {
       accountingNote: accountingNote.trim() || undefined,
       fieldMappings: mappings,
       createdAt: editingConfig?.createdAt || new Date().toISOString(),
-      version: (editingConfig?.version || 0) + (editingConfig ? 1 : 1),
+      version: (editingConfig?.version || 0) + 1,
     }
-
     const updatedConfigs = editingConfig
-      ? ledger.configs.map(c => (c.id === editingConfig.id ? newConfig : c))
+      ? ledger.configs.map(c => c.id === editingConfig.id ? newConfig : c)
       : [...ledger.configs, newConfig]
-
     updateLedger(ledger.id, { configs: updatedConfigs })
     addToast('success', editingConfig ? 'Configuración actualizada' : 'Configuración creada exitosamente')
     setLoading(false)
@@ -191,22 +254,12 @@ export function AccountingConfigTab({ ledger }: Props) {
     setDeleteTarget(null)
   }
 
-  const grupos = accounts.filter(a => a.level === 'grupo' && a.status === 'activa')
-
-  function getCuentas(grupoCode: string) {
-    if (!grupoCode) return []
-    return accounts.filter(a => a.level === 'cuenta' && a.status === 'activa' && a.code.startsWith(grupoCode.slice(0, 4)))
-  }
-
-  function getAuxiliares(cuentaCode: string) {
-    if (!cuentaCode) return []
-    return accounts.filter(a => a.level === 'auxiliar' && a.status === 'activa' && a.code.startsWith(cuentaCode.slice(0, 6)))
-  }
-
   return (
     <div className="space-y-4 fade-in">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-[#6c759f]">{ledger.configs.length} tipo(s) de transacción configurados</p>
+        <p className="text-sm" style={{ color: '#606060' }}>
+          {ledger.configs.length} tipo(s) de transacción configurados
+        </p>
         <Button onClick={openCreate} size="sm">
           <Plus size={16} /> Agregar tipo de transacción
         </Button>
@@ -226,37 +279,44 @@ export function AccountingConfigTab({ ledger }: Props) {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-base font-bold text-[#121e6c]">{cfg.transactionType}</h3>
-                  <span className="text-xs text-[#969bbd] bg-[#f1f2f6] px-2 py-0.5 rounded-full">v{cfg.version}</span>
+                  <h3 className="text-base font-bold" style={{ color: '#121E6C' }}>{cfg.transactionType}</h3>
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#F3F3F3', color: '#606060' }}>
+                    v{cfg.version}
+                  </span>
                 </div>
-                {cfg.description && <p className="text-sm text-[#6c759f]">{cfg.description}</p>}
-                {cfg.accountingNote && <p className="text-xs italic text-[#969bbd] mt-0.5">{cfg.accountingNote}</p>}
+                {cfg.description    && <p className="text-sm" style={{ color: '#606060' }}>{cfg.description}</p>}
+                {cfg.accountingNote && <p className="text-xs italic mt-0.5" style={{ color: '#969696' }}>{cfg.accountingNote}</p>}
               </div>
               <div className="flex gap-2">
-                <button onClick={() => openEdit(cfg)} className="p-2 rounded-lg hover:bg-[#f1f2f6] text-[#6c759f] hover:text-[#121e6c] transition-colors" title="Editar">
-                  <Edit2 size={16} />
-                </button>
-                <button onClick={() => setDeleteTarget(cfg.id)} className="p-2 rounded-lg hover:bg-red-50 text-[#6c759f] hover:text-[#ee424e] transition-colors" title="Eliminar">
-                  <Trash2 size={16} />
-                </button>
+                <button onClick={() => openEdit(cfg)} className="p-2 rounded-lg transition-colors" style={{ color: '#606060' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F1F2F6'; (e.currentTarget as HTMLElement).style.color = '#121E6C' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#606060' }}
+                  title="Editar"><Edit2 size={16} /></button>
+                <button onClick={() => setDeleteTarget(cfg.id)} className="p-2 rounded-lg transition-colors" style={{ color: '#606060' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FBF3F5'; (e.currentTarget as HTMLElement).style.color = '#910022' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#606060' }}
+                  title="Eliminar"><Trash2 size={16} /></button>
               </div>
             </div>
 
             <table className="w-full text-sm mb-3">
               <thead>
-                <tr className="border-b border-[#d2d4e1]">
-                  <th className="text-left py-2 text-xs font-semibold text-[#6c759f]">Campo Monetario</th>
-                  <th className="text-left py-2 text-xs font-semibold text-[#6c759f]">Cuenta Contable</th>
-                  <th className="text-left py-2 text-xs font-semibold text-[#6c759f]">Naturaleza</th>
+                <tr style={{ borderBottom: '1px solid #F1F2F6' }}>
+                  <th className="text-left py-2 text-xs font-semibold" style={{ color: '#606060' }}>Campo Monetario</th>
+                  <th className="text-left py-2 text-xs font-semibold" style={{ color: '#606060' }}>Cuenta Auxiliar</th>
+                  <th className="text-left py-2 text-xs font-semibold" style={{ color: '#606060' }}>Naturaleza</th>
                 </tr>
               </thead>
               <tbody>
                 {cfg.fieldMappings.map(m => (
-                  <tr key={m.id} className="border-b border-[#f1f2f6]">
-                    <td className="py-2 font-mono text-[#121e6c] text-xs">{m.fieldName}</td>
-                    <td className="py-2 text-[#121e6c]">{m.accountCode} – {m.accountName}</td>
+                  <tr key={m.id} style={{ borderBottom: '1px solid #F1F2F6' }}>
+                    <td className="py-2 font-mono text-xs" style={{ color: '#121E6C' }}>{m.fieldName}</td>
+                    <td className="py-2 text-sm" style={{ color: '#121E6C' }}>{m.accountCode} – {m.accountName}</td>
                     <td className="py-2">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${m.nature === 'debito' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                        style={m.nature === 'debito'
+                          ? { background: '#F1F9FF', color: '#0A53A5' }
+                          : { background: '#FBF3F5', color: '#910022' }}>
                         {m.nature === 'debito' ? 'Débito' : 'Crédito'}
                       </span>
                     </td>
@@ -264,13 +324,12 @@ export function AccountingConfigTab({ ledger }: Props) {
                 ))}
               </tbody>
             </table>
-
             <BalanceIndicator mappings={cfg.fieldMappings} />
           </Card>
         ))
       )}
 
-      {/* Create/Edit Modal */}
+      {/* Modal crear / editar */}
       <Modal
         open={showModal}
         onClose={() => setShowModal(false)}
@@ -305,89 +364,73 @@ export function AccountingConfigTab({ ledger }: Props) {
             placeholder="Nota contable para este tipo de transacción"
           />
 
+          {/* Mapeo de campos */}
           <div>
             <div className="flex justify-between items-center mb-3">
-              <p className="text-sm font-semibold text-[#121e6c]">Mapeo de Campos Monetarios</p>
-              <button onClick={addMapping} className="text-sm text-[#121e6c] font-semibold hover:text-[#ee424e] flex items-center gap-1 transition-colors">
+              <p className="text-sm font-semibold" style={{ color: '#121E6C' }}>Mapeo de Campos Monetarios</p>
+              <button onClick={addMapping}
+                className="text-sm font-semibold flex items-center gap-1 transition-colors"
+                style={{ color: '#121E6C' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#FF2947')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#121E6C')}
+              >
                 <Plus size={14} /> Agregar campo
               </button>
             </div>
-            {errors.mappings && <p className="text-xs font-semibold text-[#ee424e] mb-2">{errors.mappings}</p>}
+
+            {errors.mappings && (
+              <p className="text-xs font-semibold mb-2" style={{ color: '#910022' }}>{errors.mappings}</p>
+            )}
+
             <div className="space-y-2">
               {mappings.map((m, i) => (
-                <div key={m.id} className="grid grid-cols-[1fr_2fr_auto_auto] gap-2 items-start">
+                <div key={m.id} className="grid gap-2 items-start" style={{ gridTemplateColumns: '1fr 2fr auto auto' }}>
+                  {/* Campo monetario */}
                   <div>
-                    {i === 0 && <p className="text-xs font-semibold text-[#6c759f] mb-1">Campo</p>}
+                    {i === 0 && <p className="text-xs font-semibold mb-1" style={{ color: '#606060' }}>Campo</p>}
                     <input
                       value={m.fieldName}
                       onChange={e => updateMapping(m.id, 'fieldName', e.target.value)}
                       placeholder="amount_principal"
-                      className="h-10 px-3 w-full rounded-lg border border-[#d2d4e1] text-sm font-mono text-[#121e6c] focus:outline-none focus:border-[#121e6c] bg-white"
+                      className="h-10 px-3 w-full border border-[#969696] text-xs font-mono text-[#121E6C] bg-white focus:outline-none focus:border-2 focus:border-[#FF2947]"
+                      style={{ borderRadius: '8px' }}
                     />
                   </div>
+
+                  {/* Cuenta auxiliar — autocompletado */}
                   <div>
-                    {i === 0 && <p className="text-xs font-semibold text-[#6c759f] mb-1">Cuenta Auxiliar</p>}
-                    <div className="flex flex-col gap-1">
-                      <select
-                        value={grupoSels[i] || ''}
-                        onChange={e => {
-                          const val = e.target.value
-                          setGrupoSels(p => p.map((v, idx) => idx === i ? val : v))
-                          setCuentaSels(p => p.map((v, idx) => idx === i ? '' : v))
-                          updateMapping(m.id, 'accountCode', '')
-                        }}
-                        className="h-9 px-2 w-full rounded-lg border border-[#d2d4e1] text-xs text-[#121e6c] focus:outline-none focus:border-[#121e6c] bg-white cursor-pointer"
-                      >
-                        <option value="">Grupo...</option>
-                        {grupos.map(a => (
-                          <option key={a.code} value={a.code}>{a.code} – {a.name}</option>
-                        ))}
-                      </select>
-                      <select
-                        value={cuentaSels[i] || ''}
-                        onChange={e => {
-                          const val = e.target.value
-                          setCuentaSels(p => p.map((v, idx) => idx === i ? val : v))
-                          updateMapping(m.id, 'accountCode', '')
-                        }}
-                        disabled={!grupoSels[i]}
-                        className="h-9 px-2 w-full rounded-lg border border-[#d2d4e1] text-xs text-[#121e6c] focus:outline-none focus:border-[#121e6c] bg-white cursor-pointer disabled:opacity-40"
-                      >
-                        <option value="">Cuenta...</option>
-                        {getCuentas(grupoSels[i] || '').map(a => (
-                          <option key={a.code} value={a.code}>{a.code} – {a.name}</option>
-                        ))}
-                      </select>
-                      <select
-                        value={m.accountCode}
-                        onChange={e => updateMapping(m.id, 'accountCode', e.target.value)}
-                        disabled={!cuentaSels[i]}
-                        className="h-9 px-2 w-full rounded-lg border border-[#d2d4e1] text-xs text-[#121e6c] focus:outline-none focus:border-[#121e6c] bg-white cursor-pointer disabled:opacity-40"
-                      >
-                        <option value="">Auxiliar...</option>
-                        {getAuxiliares(cuentaSels[i] || '').map(a => (
-                          <option key={a.code} value={a.code}>{a.code} – {a.name}</option>
-                        ))}
-                      </select>
-                    </div>
+                    {i === 0 && <p className="text-xs font-semibold mb-1" style={{ color: '#606060' }}>Cuenta Auxiliar</p>}
+                    <AccountAutocomplete
+                      value={m.accountCode}
+                      label={m.accountName}
+                      onSelect={(code, name) => selectAccount(m.id, code, name)}
+                    />
                   </div>
+
+                  {/* Naturaleza */}
                   <div>
-                    {i === 0 && <p className="text-xs font-semibold text-[#6c759f] mb-1">Naturaleza</p>}
+                    {i === 0 && <p className="text-xs font-semibold mb-1" style={{ color: '#606060' }}>Naturaleza</p>}
                     <select
                       value={m.nature}
                       onChange={e => updateMapping(m.id, 'nature', e.target.value as AccountNature)}
-                      className="h-10 px-3 rounded-lg border border-[#d2d4e1] text-sm text-[#121e6c] focus:outline-none focus:border-[#121e6c] bg-white cursor-pointer"
+                      className="h-10 px-3 border border-[#969696] text-sm text-[#121E6C] bg-white focus:outline-none focus:border-2 focus:border-[#FF2947] cursor-pointer"
+                      style={{ borderRadius: '8px' }}
                     >
                       <option value="debito">Débito</option>
                       <option value="credito">Crédito</option>
                     </select>
                   </div>
+
+                  {/* Eliminar fila */}
                   <div>
                     {i === 0 && <p className="text-xs opacity-0 mb-1">x</p>}
                     <button
                       onClick={() => removeMapping(m.id)}
                       disabled={mappings.length === 1}
-                      className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-red-50 text-[#969bbd] hover:text-[#ee424e] transition-colors disabled:opacity-30"
+                      className="h-10 w-10 flex items-center justify-center rounded-lg transition-colors disabled:opacity-30"
+                      style={{ color: '#969696' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FBF3F5'; (e.currentTarget as HTMLElement).style.color = '#910022' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#969696' }}
                     >
                       <Trash2 size={15} />
                     </button>

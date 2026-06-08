@@ -185,10 +185,22 @@ export const FREQUENCIES = [
 
 export const COMPANIES: { value: LedgerCompany; label: string }[] = [
   { value: 'CF',      label: 'Bold CF' },
-  { value: 'SAS',     label: 'Bold SAS' },
+  { value: 'SAS',     label: 'Bold Co' },
   { value: 'Capital', label: 'Bold Capital' },
-  { value: 'Peru',    label: 'Bold Perú' },
+  { value: 'Peru',    label: 'Bold Pe' },
 ]
+
+// Opciones filtradas por país
+export const COMPANIES_BY_COUNTRY: Record<string, { value: LedgerCompany; label: string }[]> = {
+  colombia: [
+    { value: 'CF',      label: 'Bold CF' },
+    { value: 'SAS',     label: 'Bold Co' },
+    { value: 'Capital', label: 'Bold Capital' },
+  ],
+  peru: [
+    { value: 'Peru', label: 'Bold Pe' },
+  ],
+}
 
 export const CURRENCIES: { value: LedgerCurrency; label: string }[] = [
   { value: 'COP', label: 'COP — Peso Colombiano' },

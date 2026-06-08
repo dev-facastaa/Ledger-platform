@@ -9,8 +9,8 @@ interface CardProps {
 export function Card({ children, className = '', padding = true }: CardProps) {
   return (
     <div
-      className={`bg-white border border-[#d2d4e1] rounded-xl ${padding ? 'p-6' : ''} ${className}`}
-      style={{ boxShadow: '0 2px 8px rgba(18, 30, 108, 0.08)' }}
+      className={`bg-white rounded-2xl ${padding ? 'p-6' : ''} ${className}`}
+      style={{ boxShadow: '0px 4px 12px 0px rgba(18,30,108,0.08)' }}
     >
       {children}
     </div>
@@ -29,8 +29,8 @@ export function MetricCard({ label, value, sub, icon, gradient }: MetricCardProp
   if (gradient) {
     return (
       <div
-        className="rounded-xl p-6 text-white"
-        style={{ background: 'linear-gradient(135deg, #121e6c 15%, #ee424e 85%)' }}
+        className="rounded-2xl p-6 text-white"
+        style={{ background: 'linear-gradient(135deg, #121E6C 15%, #FF2947 85%)' }}
       >
         <div className="flex items-start justify-between mb-2">
           <p className="text-sm font-semibold opacity-80">{label}</p>
@@ -44,11 +44,11 @@ export function MetricCard({ label, value, sub, icon, gradient }: MetricCardProp
   return (
     <Card>
       <div className="flex items-start justify-between mb-2">
-        <p className="text-sm font-semibold text-[#6c759f]">{label}</p>
-        {icon && <span className="text-[#121e6c]">{icon}</span>}
+        <p className="text-sm font-semibold text-[#606060]">{label}</p>
+        {icon && <span className="text-[#121E6C]">{icon}</span>}
       </div>
-      <p className="text-3xl font-black text-[#121e6c]">{value}</p>
-      {sub && <p className="text-xs text-[#6c759f] mt-1">{sub}</p>}
+      <p className="text-3xl font-black text-[#121E6C]">{value}</p>
+      {sub && <p className="text-xs text-[#606060] mt-1">{sub}</p>}
     </Card>
   )
 }

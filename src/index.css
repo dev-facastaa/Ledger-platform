@@ -2,15 +2,39 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bold-blue: #121e6c;
-  --color-bold-coral: #ee424e;
-  --color-bold-clematis: #3e4983;
-  --color-bold-velvet: #6c759f;
-  --color-bold-serenity: #969bbd;
-  --color-bold-zen: #d2d4e1;
-  --color-bold-light: #f1f2f6;
-  --color-bold-success: #4caf50;
-  --color-bold-warning: #ff9800;
+  /* Azul — primario de marca */
+  --color-blue-100: #121E6C;
+  --color-blue-80:  #1F2A74;
+  --color-blue-60:  #3E4983;
+  --color-blue-10:  #F1F2F6;
+
+  /* Coral — acción primaria */
+  --color-coral-100:   #FF2947;
+  --color-coral-hover: #E4102E;
+  --color-coral-10:    #FEF1F3;
+
+  /* Negros y grises */
+  --color-black-100: #1E1E1E;
+  --color-black-60:  #606060;
+  --color-black-40:  #969696;
+  --color-black-10:  #F3F3F3;
+  --color-white:     #FFFFFF;
+  --color-bg-page:   #F7F8FB;
+
+  /* Feedback — estados semánticos */
+  --color-success-bg:   #F4FDF9;
+  --color-success-text: #1B8959;
+  --color-warning-bg:   #FFF3D1;
+  --color-warning-text: #FFC217;
+  --color-error-bg:     #FBF3F5;
+  --color-error-text:   #910022;
+  --color-info-bg:      #F1F9FF;
+  --color-info-text:    #0A53A5;
+
+  /* Sombras Merlin */
+  --shadow-card:  0px 4px 12px 0px rgba(18,30,108,0.08);
+  --shadow-modal: 0px 12px 28px 0px rgba(18,30,108,0.08);
+
   --font-sans: 'Montserrat', system-ui, sans-serif;
 }
 
@@ -18,19 +42,25 @@
 
 body {
   font-family: 'Montserrat', system-ui, sans-serif;
-  background-color: #f1f2f6;
-  color: #121e6c;
+  background-color: #F7F8FB;
+  color: #121E6C;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Escala tipográfica Merlin */
+.title-large    { font-size: 28px; line-height: 32px; font-weight: 400; }
+.subtitle-large { font-size: 16px; line-height: 24px; font-weight: 600; }
+.body-large     { font-size: 16px; line-height: 24px; font-weight: 400; }
+.caption-bold   { font-size: 12px; line-height: 16px; font-weight: 700; }
+
 #root { width: 100%; min-height: 100vh; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f1f2f6; }
-::-webkit-scrollbar-thumb { background: #d2d4e1; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #969bbd; }
+::-webkit-scrollbar-track { background: #F7F8FB; }
+::-webkit-scrollbar-thumb { background: #969696; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #606060; }
 
 @keyframes shimmer {
   0% { background-position: -400px 0; }

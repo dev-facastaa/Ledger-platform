@@ -5,23 +5,42 @@ interface BadgeProps {
   className?: string
 }
 
+// Tokens Merlin Feedback — fondo semántico + texto oscuro (no filled sólido)
 const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
-  activo: { label: 'Activo', bg: '#4caf50', text: 'white' },
-  inactivo: { label: 'Inactivo', bg: '#969bbd', text: 'white' },
-  borrador: { label: 'Borrador', bg: '#ff9800', text: 'white' },
-  processed: { label: 'Procesado', bg: '#4caf50', text: 'white' },
-  failed: { label: 'Fallido', bg: '#ee424e', text: 'white' },
-  pending: { label: 'Pendiente', bg: '#ff9800', text: 'white' },
-  activa: { label: 'Activa', bg: '#4caf50', text: 'white' },
-  inactiva: { label: 'Inactiva', bg: '#969bbd', text: 'white' },
+  // Success
+  activo:     { label: 'Activo',     bg: '#F4FDF9', text: '#1B8959' },
+  activa:     { label: 'Activa',     bg: '#F4FDF9', text: '#1B8959' },
+  processed:  { label: 'Procesado',  bg: '#F4FDF9', text: '#1B8959' },
+  exitoso:    { label: 'Exitoso',    bg: '#F4FDF9', text: '#1B8959' },
+  // Warning
+  borrador:   { label: 'Borrador',   bg: '#FFF3D1', text: '#5B3100' },
+  pending:    { label: 'Pendiente',  bg: '#FFF3D1', text: '#5B3100' },
+  pendiente:  { label: 'Pendiente',  bg: '#FFF3D1', text: '#5B3100' },
+  // Error
+  inactivo:   { label: 'Inactivo',   bg: '#FBF3F5', text: '#910022' },
+  inactiva:   { label: 'Inactiva',   bg: '#FBF3F5', text: '#910022' },
+  failed:     { label: 'Fallido',    bg: '#FBF3F5', text: '#910022' },
+  rechazado:  { label: 'Rechazado',  bg: '#FBF3F5', text: '#910022' },
+  // Informative
+  abierto:    { label: 'Abierto',    bg: '#F1F9FF', text: '#0A53A5' },
+  // Neutral / cerrado
+  cerrado:    { label: 'Cerrado',    bg: '#F3F3F3', text: '#969696' },
+  neutral:    { label: 'Neutral',    bg: '#F3F3F3', text: '#969696' },
 }
 
 export function Badge({ status, className = '' }: BadgeProps) {
-  const config = statusConfig[status] ?? { label: status, bg: '#d2d4e1', text: '#121e6c' }
+  const config = statusConfig[status] ?? { label: status, bg: '#F3F3F3', text: '#969696' }
   return (
     <span
-      className={`inline-flex items-center h-6 px-3 rounded-xl text-xs font-semibold ${className}`}
-      style={{ backgroundColor: config.bg, color: config.text }}
+      className={`inline-flex items-center px-3 rounded-[100px] ${className}`}
+      style={{
+        backgroundColor: config.bg,
+        color: config.text,
+        height: '24px',
+        fontSize: '12px',
+        fontWeight: 700,
+        lineHeight: '16px',
+      }}
     >
       {config.label}
     </span>
@@ -33,15 +52,20 @@ interface AlertBadgeProps {
 }
 
 export function AlertBadge({ severity }: AlertBadgeProps) {
+  const isCritical = severity === 'critical'
   return (
     <span
-      className="inline-flex items-center h-6 px-3 rounded-xl text-xs font-semibold"
+      className="inline-flex items-center px-3 rounded-[100px]"
       style={{
-        backgroundColor: severity === 'critical' ? '#ee424e' : '#ff9800',
-        color: 'white',
+        backgroundColor: isCritical ? '#FBF3F5' : '#FFF3D1',
+        color: isCritical ? '#910022' : '#5B3100',
+        height: '24px',
+        fontSize: '12px',
+        fontWeight: 700,
+        lineHeight: '16px',
       }}
     >
-      {severity === 'critical' ? 'Crítico' : 'Advertencia'}
+      {isCritical ? 'Crítico' : 'Advertencia'}
     </span>
   )
 }

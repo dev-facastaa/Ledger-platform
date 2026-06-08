@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ERPConfigTab } from './ERPConfigTab'
-import { COUNTRIES, FREQUENCIES } from '../../services/mock/ledgers'
+import { FREQUENCIES } from '../../services/mock/ledgers'
 import type { Ledger } from '../../types'
 
 function ERPStatusBadge({ configured }: { configured: boolean }) {
@@ -27,14 +27,15 @@ function ERPStatusBadge({ configured }: { configured: boolean }) {
 }
 
 export function ERPModule() {
-  const { ledgers } = useAppStore()
+  const { ledgers, selectedCountry } = useAppStore()
   const [selectedLedger, setSelectedLedger] = useState<Ledger | null>(null)
 
-  const countryLabel = (c: string) => COUNTRIES.find(x => x.value === c)?.label ?? c
   const frequencyLabel = (f: string) => FREQUENCIES.find(x => x.value === f)?.label ?? f
 
-  const configured = ledgers.filter(l => l.erpConfig?.configured).length
-  const pending = ledgers.length - configured
+  // Filtrar por país activo (consistente con el header global)
+  const countryLedgers = ledgers.filter(l => l.country === selectedCountry)
+  const configured = countryLedgers.filter(l => l.erpConfig?.configured).length
+  const pending = countryLedgers.length - configured
 
   return (
     <div className="fade-in">
@@ -47,7 +48,7 @@ export function ERPModule() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <Card>
           <p className="text-xs font-semibold text-[#6c759f] uppercase tracking-wide mb-1">Total ledgers</p>
-          <p className="text-3xl font-black text-[#121e6c]">{ledgers.length}</p>
+          <p className="text-3xl font-black text-[#121e6c]">{countryLedgers.length}</p>
         </Card>
         <Card>
           <p className="text-xs font-semibold text-[#6c759f] uppercase tracking-wide mb-1">Configurados</p>
@@ -61,7 +62,7 @@ export function ERPModule() {
 
       {/* Table */}
       <Card padding={false}>
-        {ledgers.length === 0 ? (
+        {countryLedgers.length === 0 ? (
           <EmptyState
             icon={<Upload size={28} />}
             title="No hay ledgers"
@@ -71,29 +72,27 @@ export function ERPModule() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ background: '#f1f2f6', borderBottom: '2px solid #d2d4e1' }}>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-[#121e6c]">Ledger</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-[#121e6c]">País</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-[#121e6c]">Frecuencia Ledger</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-[#121e6c]">Formato ERP</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-[#121e6c]">Estado ERP</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-[#121e6c]">Estado Ledger</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-[#121e6c]">Acciones</th>
+                <tr style={{ background: '#F1F2F6', borderBottom: '2px solid #F1F2F6' }}>
+                  <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: '#121E6C' }}>Ledger</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: '#121E6C' }}>Frecuencia Ledger</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: '#121E6C' }}>Formato ERP</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: '#121E6C' }}>Estado ERP</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: '#121E6C' }}>Estado Ledger</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: '#121E6C' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {ledgers.map(ledger => (
+                {countryLedgers.map(ledger => (
                   <tr
                     key={ledger.id}
-                    className="border-b border-[#d2d4e1] hover:bg-[#fdeaeb] transition-colors"
+                    className="border-b border-[#F1F2F6] hover:bg-[#F1F9FF] transition-colors"
                   >
                     <td className="px-4 py-4">
-                      <p className="text-sm font-semibold text-[#121e6c]">{ledger.name}</p>
+                      <p className="text-sm font-semibold" style={{ color: '#121E6C' }}>{ledger.name}</p>
                       {ledger.description && (
-                        <p className="text-xs text-[#6c759f] truncate max-w-[220px]">{ledger.description}</p>
+                        <p className="text-xs truncate max-w-[220px]" style={{ color: '#606060' }}>{ledger.description}</p>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-sm text-[#121e6c]">{countryLabel(ledger.country)}</td>
                     <td className="px-4 py-4">
                       <span className="text-xs font-semibold px-2 py-1 rounded-full bg-[#f1f2f6] text-[#3e4983]">
                         {frequencyLabel(ledger.frequency)}

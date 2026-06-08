@@ -11,21 +11,24 @@ export function Input({ label, error, helper, className = '', id, ...props }: In
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-semibold text-[#121e6c]">
+        <label htmlFor={inputId} className="text-sm font-semibold text-[#121E6C]">
           {label}
         </label>
       )}
       <input
         id={inputId}
-        className={`h-12 px-4 rounded-lg border text-base font-normal text-[#121e6c] placeholder:text-[#969bbd] bg-white transition-all duration-150
+        className={`h-12 px-4 border text-base font-normal text-[#121E6C] placeholder:text-[#606060] bg-white transition-all duration-150
           focus:outline-none focus:ring-0
-          ${error ? 'border-2 border-[#ee424e]' : 'border border-[#d2d4e1] focus:border-2 focus:border-[#121e6c]'}
-          disabled:bg-[#f1f2f6] disabled:text-[#969bbd] disabled:cursor-not-allowed
+          ${error
+            ? 'border-2 border-[#910022]'
+            : 'border border-[#969696] focus:border-2 focus:border-[#FF2947]'}
+          disabled:bg-[#F3F3F3] disabled:text-[#969696] disabled:cursor-not-allowed
           ${className}`}
+        style={{ borderRadius: '12px' }}
         {...props}
       />
-      {helper && !error && <p className="text-xs text-[#6c759f]">{helper}</p>}
-      {error && <p className="text-xs font-semibold text-[#ee424e]">{error}</p>}
+      {helper && !error && <p className="text-xs text-[#606060]">{helper}</p>}
+      {error && <p className="text-xs font-semibold text-[#910022]">{error}</p>}
     </div>
   )
 }
@@ -43,17 +46,20 @@ export function Select({ label, error, helper, options, placeholder, className =
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-semibold text-[#121e6c]">
+        <label htmlFor={inputId} className="text-sm font-semibold text-[#121E6C]">
           {label}
         </label>
       )}
       <select
         id={inputId}
-        className={`h-12 px-4 rounded-lg border text-base font-normal text-[#121e6c] bg-white transition-all duration-150 cursor-pointer
+        className={`h-12 px-4 border text-base font-normal text-[#121E6C] bg-white transition-all duration-150 cursor-pointer
           focus:outline-none focus:ring-0
-          ${error ? 'border-2 border-[#ee424e]' : 'border border-[#d2d4e1] focus:border-2 focus:border-[#121e6c]'}
-          disabled:bg-[#f1f2f6] disabled:text-[#969bbd]
+          ${error
+            ? 'border-2 border-[#910022]'
+            : 'border border-[#969696] focus:border-2 focus:border-[#FF2947]'}
+          disabled:bg-[#F3F3F3] disabled:text-[#969696]
           ${className}`}
+        style={{ borderRadius: '12px' }}
         {...props}
       >
         {placeholder && <option value="">{placeholder}</option>}
@@ -61,8 +67,8 @@ export function Select({ label, error, helper, options, placeholder, className =
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
-      {helper && !error && <p className="text-xs text-[#6c759f]">{helper}</p>}
-      {error && <p className="text-xs font-semibold text-[#ee424e]">{error}</p>}
+      {helper && !error && <p className="text-xs text-[#606060]">{helper}</p>}
+      {error && <p className="text-xs font-semibold text-[#910022]">{error}</p>}
     </div>
   )
 }
@@ -78,20 +84,23 @@ export function Textarea({ label, error, helper, className = '', id, ...props }:
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-semibold text-[#121e6c]">
+        <label htmlFor={inputId} className="text-sm font-semibold text-[#121E6C]">
           {label}
         </label>
       )}
       <textarea
         id={inputId}
-        className={`p-4 rounded-lg border text-base font-normal text-[#121e6c] placeholder:text-[#969bbd] bg-white resize-none transition-all duration-150
+        className={`p-4 border text-base font-normal text-[#121E6C] placeholder:text-[#606060] bg-white resize-none transition-all duration-150
           focus:outline-none focus:ring-0
-          ${error ? 'border-2 border-[#ee424e]' : 'border border-[#d2d4e1] focus:border-2 focus:border-[#121e6c]'}
+          ${error
+            ? 'border-2 border-[#910022]'
+            : 'border border-[#969696] focus:border-2 focus:border-[#FF2947]'}
           ${className}`}
+        style={{ borderRadius: '12px' }}
         {...props}
       />
-      {helper && !error && <p className="text-xs text-[#6c759f]">{helper}</p>}
-      {error && <p className="text-xs font-semibold text-[#ee424e]">{error}</p>}
+      {helper && !error && <p className="text-xs text-[#606060]">{helper}</p>}
+      {error && <p className="text-xs font-semibold text-[#910022]">{error}</p>}
     </div>
   )
 }
